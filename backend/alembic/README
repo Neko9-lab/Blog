@@ -1,0 +1,7 @@
+﻿# Migration usage
+
+Run:
+  alembic upgrade head
+
+Seed:
+  python -m scripts.seed
