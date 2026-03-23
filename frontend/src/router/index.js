@@ -7,6 +7,7 @@ import PostDetail from "../views/PostDetail.vue";
 import PostNew from "../views/PostNew.vue";
 import PostEdit from "../views/PostEdit.vue";
 import Profile from "../views/Profile.vue";
+import ContentCenter from "../views/ContentCenter.vue";
 import Admin from "../views/Admin.vue";
 import Notifications from "../views/Notifications.vue";
 
@@ -18,6 +19,7 @@ const routes = [
   { path: "/posts/:id/edit", component: PostEdit, meta: { requiresAuth: true } },
   { path: "/posts/:id", component: PostDetail },
   { path: "/profile", component: Profile, meta: { requiresAuth: true } },
+  { path: "/profile/content", component: ContentCenter, meta: { requiresAuth: true } },
   { path: "/notifications", component: Notifications, meta: { requiresAuth: true } },
   { path: "/admin", component: Admin, meta: { requiresAuth: true, requiresAdmin: true } },
 ];

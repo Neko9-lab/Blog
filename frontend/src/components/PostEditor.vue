@@ -1,32 +1,33 @@
-﻿<template>
-  <div class="editor">
-    <div class="page-header">
-      <div class="page-title">发布帖子</div>
-      <el-button size="small" @click="goBack">返回</el-button>
-    </div>
-    <el-form class="post-form" @submit.prevent="submit">
-      <el-form-item label="标题">
-        <el-input v-model="form.title" placeholder="请输入标题" />
-      </el-form-item>
-      <el-form-item label="内容">
-        <div class="vditor-wrap">
-          <div ref="editorRef"></div>
-        </div>
-      </el-form-item>
-      <el-form-item label="分类">
-        <el-select v-model="form.category_id" placeholder="请选择分类" class="category-select">
+<template>
+  <div class="editor-container">
+    <div class="editor-header">
+      <el-button @click="goBack" plain round>⬅ 返回</el-button>
+      <div class="header-actions">
+        <el-select v-model="form.category_id" placeholder="选择发布节点" class="header-category" clearable>
           <el-option v-for="c in categories" :key="c.id" :label="c.name" :value="c.id" />
         </el-select>
-      </el-form-item>
-      <div class="form-actions">
-        <el-button type="primary" @click="submit">发布</el-button>
+        <el-button type="primary" @click="submit" class="publish-btn" round>
+          发布帖子
+        </el-button>
       </div>
-    </el-form>
+    </div>
+    
+    <div class="editor-paper">
+      <input 
+        class="title-input" 
+        v-model="form.title" 
+        placeholder="输入一个吸睛的标题..." 
+      />
+      <div class="vditor-wrap" :class="{ 'is-loading': editorLoading }">
+        <div v-if="editorLoading" class="editor-loading">编辑器装载中...</div>
+        <div ref="editorRef" class="vditor-instance"></div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount, reactive, ref } from "vue";
+import { nextTick, onMounted, onBeforeUnmount, reactive, ref } from "vue";
 import { ElMessage } from "element-plus";
 import { useRouter } from "vue-router";
 import Vditor from "vditor";
@@ -42,10 +43,61 @@ const form = reactive({ title: "", content: "", category_id: null });
 const categories = ref([]);
 const editorRef = ref(null);
 const editor = ref(null);
+const editorLoading = ref(true);
+
+const toolbarNameMap = {
+  emoji: "表情",
+  head: "标题",
+  bold: "加粗",
+  italic: "斜体",
+  strike: "删除线",
+  link: "链接",
+  list: "无序列表",
+  "ordered-list": "有序列表",
+  check: "任务列表",
+  outdent: "减少缩进",
+  indent: "增加缩进",
+  quote: "引用",
+  line: "分割线",
+  code: "代码块",
+  "inline-code": "行内代码",
+  "insert-before": "上方插入",
+  "insert-after": "下方插入",
+  upload: "上传图片",
+  record: "录音",
+  table: "表格",
+  undo: "撤销",
+  redo: "重做",
+  both: "编辑预览",
+  preview: "预览",
+  fullscreen: "全屏",
+  "edit-mode": "编辑模式",
+  export: "导出",
+  outline: "大纲",
+  help: "帮助",
+  info: "说明",
+  br: "换行",
+};
+
+const getErrorMessage = (err, fallback) => err?.response?.data?.detail || err?.response?.data?.msg || fallback;
 
 const loadCategories = async () => {
-  const resp = await api.get("/api/v1/categories");
-  categories.value = resp.data || [];
+  try {
+    const resp = await api.get("/api/v1/categories");
+    categories.value = resp.data || [];
+  } catch (err) {
+    ElMessage.error(getErrorMessage(err, "分类加载失败"));
+  }
+};
+
+const applyToolbarTitles = () => {
+  const toolbarItems = editorRef.value?.querySelectorAll(".vditor-toolbar button, .vditor-toolbar .vditor-tooltipped");
+  toolbarItems?.forEach((item) => {
+    const ariaLabel = item.getAttribute("aria-label");
+    const dataType = item.getAttribute("data-type");
+    const title = ariaLabel || toolbarNameMap[dataType] || item.textContent?.trim() || "编辑器功能";
+    item.setAttribute("title", title);
+  });
 };
 
 const uploadImages = async (files) => {
@@ -61,18 +113,28 @@ const uploadImages = async (files) => {
       const fullUrl = rawUrl.startsWith("http") ? rawUrl : `${apiBase}${rawUrl}`;
       editor.value?.insertValue(`\n![](${fullUrl})\n`);
     } catch (err) {
-      const msg = err?.response?.data?.msg || "上传失败";
-      ElMessage.error(msg);
+      ElMessage.error(getErrorMessage(err, "上传失败"));
     }
   }
 };
 
-const initEditor = () => {
+const initEditor = async () => {
+  await nextTick();
+  if (!editorRef.value || editor.value) {
+    editorLoading.value = false;
+    return;
+  }
+
   editor.value = new Vditor(editorRef.value, {
-    height: 360,
+    height: 500,
     mode: "ir",
     cache: { enable: false },
     value: form.content,
+    placeholder: "正文内容：支持 Markdown 语法，亦可直接粘贴图片...",
+    after: () => {
+      editorLoading.value = false;
+      applyToolbarTitles();
+    },
     input: (value) => {
       form.content = value;
     },
@@ -84,11 +146,11 @@ const initEditor = () => {
 
 const submit = async () => {
   if (!store.token) {
-    ElMessage.warning("请先登录再发帖");
+    ElMessage.warning("请先登录再操作");
     router.push("/login");
     return;
   }
-  if (!form.title || !form.content) {
+  if (!form.title.trim() || !form.content.trim()) {
     ElMessage.warning("标题和内容不能为空");
     return;
   }
@@ -98,11 +160,10 @@ const submit = async () => {
   }
   try {
     await api.post("/api/v1/posts", payload);
-    ElMessage.success("发布成功");
+    ElMessage.success("发布成功！");
     emit("posted");
   } catch (err) {
-    const msg = err?.response?.data?.msg || "发布失败";
-    ElMessage.error(msg);
+    ElMessage.error(getErrorMessage(err, "发布遇到问题"));
   }
 };
 
@@ -114,9 +175,9 @@ const goBack = () => {
   }
 };
 
-onMounted(async () => {
-  await loadCategories();
+onMounted(() => {
   initEditor();
+  loadCategories();
 });
 
 onBeforeUnmount(() => {
@@ -125,45 +186,119 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.editor {
-  max-width: 980px;
-  margin: 24px auto;
+.editor-container {
+  max-width: 900px;
+  margin: 32px auto;
   padding: 0 16px;
 }
-.page-header {
+.editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+.header-actions {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+.header-category {
+  width: 140px;
+}
+.publish-btn {
+  padding: 8px 24px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+  transition: all 0.2s;
+}
+.publish-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3);
+}
+
+.editor-paper {
+  background: #fff;
+  border-radius: 12px;
+  padding: 36px 48px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  min-height: 600px;
+  display: flex;
+  flex-direction: column;
+}
+
+.title-input {
+  width: 100%;
+  border: none;
+  outline: none;
+  font-size: 32px;
+  font-weight: 800;
+  color: #0f172a;
+  padding: 8px 0;
+  margin-bottom: 20px;
+  background: transparent;
+  transition: color 0.2s;
+}
+.title-input::placeholder {
+  color: #cbd5e1;
+  font-weight: 700;
+}
+
+.vditor-wrap {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.vditor-instance {
+  flex: 1;
+}
+
+/* Override Vditor default themes to seamlessly blend in */
+.vditor-wrap :deep(.vditor) {
+  border: none !important;
+  box-shadow: none !important;
+}
+.vditor-wrap :deep(.vditor-toolbar) {
+  border-bottom: 1px solid #e2e8f0 !important;
+  border-top: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  padding: 8px 0 12px 0 !important;
+  background: transparent !important;
+}
+.vditor-wrap :deep(.vditor-content) {
+  padding-top: 16px !important;
+}
+.vditor-wrap :deep(.vditor-reset) {
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 1.8;
+  color: #334155;
+}
+
+.vditor-wrap.is-loading {
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+  border-radius: 8px;
+}
+.editor-loading {
+  position: absolute;
+  inset: 0;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
+  justify-content: center;
+  color: #64748b;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  z-index: 10;
 }
-.page-title {
-  font-size: 22px;
-  font-weight: 600;
-}
-.post-form :deep(.el-form-item__label) {
-  width: 80px;
-  color: #475569;
-}
-.post-form :deep(.el-form-item) {
-  margin-bottom: 18px;
-}
-.category-select {
-  width: 240px;
-}
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-}
-.vditor-wrap {
-  border: 1px solid #e6e8ee;
-  border-radius: 10px;
-  overflow: hidden;
-  background: #fff;
-}
-.post-form :deep(.vditor-toolbar__item) {
+
+/* Tooltip fixes for the toolbar */
+.vditor-wrap :deep(.vditor-toolbar__item) {
   position: relative;
 }
-.post-form :deep(.vditor-toolbar__item[aria-label]:hover::after) {
+.vditor-wrap :deep(.vditor-toolbar__item[aria-label]:hover::after) {
   content: attr(aria-label);
   position: absolute;
   top: 100%;
@@ -176,5 +311,16 @@ onBeforeUnmount(() => {
   border-radius: 6px;
   white-space: nowrap;
   z-index: 10;
+  pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  .editor-paper {
+    padding: 24px;
+  }
+  .title-input {
+    font-size: 24px;
+    margin-bottom: 16px;
+  }
 }
 </style>

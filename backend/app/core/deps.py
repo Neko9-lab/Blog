@@ -1,4 +1,5 @@
 ﻿import time
+from datetime import datetime, timezone
 from typing import AsyncGenerator
 
 from fastapi import Depends, HTTPException, status
@@ -67,6 +68,38 @@ class _MemoryRedis:
 _memory_redis = _MemoryRedis()
 
 
+def _normalize_ban_time(value: datetime | None) -> datetime | None:
+    if value is None:
+        return None
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
+
+
+def _build_ban_detail(user: User) -> str:
+    reason = user.ban_reason or "Banned by administrator"
+    expires_at = _normalize_ban_time(user.ban_expires_at)
+    if expires_at is None:
+        return f"User banned permanently: {reason}"
+    return f"User banned until {expires_at.strftime('%Y-%m-%d %H:%M UTC')}: {reason}"
+
+
+async def ensure_user_not_banned(db: AsyncSession, user: User) -> User:
+    if not user.is_banned:
+        return user
+
+    expires_at = _normalize_ban_time(user.ban_expires_at)
+    if expires_at and expires_at <= datetime.now(timezone.utc):
+        user.is_banned = False
+        user.ban_reason = None
+        user.ban_expires_at = None
+        await db.commit()
+        await db.refresh(user)
+        return user
+
+    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=_build_ban_detail(user))
+
+
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     session = async_session()
     try:
@@ -95,8 +128,10 @@ async def get_current_user(
 
     user_id = int(payload.get("sub", 0))
     user = await db.get(User, user_id)
-    if not user or user.is_banned:
+    if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid user")
+
+    await ensure_user_not_banned(db, user)
     return user
 
 

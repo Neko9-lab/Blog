@@ -1,4 +1,6 @@
-﻿from fastapi import APIRouter, Depends, HTTPException, status
+﻿from datetime import datetime, timezone
+
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -41,8 +43,8 @@ async def create_comment(
         parent = await db.get(Comment, payload.parent_id)
         level = (parent.level + 1) if parent else 1
         if level > 3:
-            # 待优化：支持更深层级的评论结构
             level = 3
+
     comment = Comment(
         post_id=payload.post_id,
         user_id=current_user.id,
@@ -54,6 +56,9 @@ async def create_comment(
     db.add(comment)
 
     post = await db.get(Post, payload.post_id)
+    if post:
+        post.comment_count = max(0, (post.comment_count or 0) + 1)
+        post.last_activity_at = datetime.now(timezone.utc)
     if post and post.author_id != current_user.id:
         db.add(
             Notification(
@@ -114,6 +119,10 @@ async def delete_comment(
     if not comment:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Comment not found")
     _ensure_owner_or_admin(comment, current_user)
+    post = await db.get(Post, comment.post_id)
+    if post:
+        post.comment_count = max(0, (post.comment_count or 0) - 1)
+        post.last_activity_at = datetime.now(timezone.utc)
     await db.delete(comment)
     await db.commit()
     return success({"id": comment_id})
@@ -152,7 +161,7 @@ async def list_comments(post_id: int, db: AsyncSession = Depends(get_db)):
     stmt = (
         select(Comment, User.username, User.nickname, User.avatar_url)
         .join(User, User.id == Comment.user_id)
-        .where(Comment.post_id == post_id, Comment.is_approved == True)  # noqa: E712
+        .where(Comment.post_id == post_id, Comment.is_approved == True)
         .order_by(Comment.created_at.asc())
     )
     result = await db.execute(stmt)

@@ -5,7 +5,7 @@ from sqlalchemy import select, or_
 from loguru import logger
 import random
 
-from app.core.deps import get_db, get_redis
+from app.core.deps import get_db, get_redis, ensure_user_not_banned
 from app.core.rate_limit import RateLimiter
 from app.core.security import create_access_token, create_refresh_token, verify_password, hash_password, decode_token
 from app.models.user import User
@@ -44,8 +44,8 @@ async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db), redis
     if not user or not verify_password(payload.password, user.hashed_password):
         limiter.record_failure(payload.account)
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
-    if user.is_banned:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User banned")
+
+    await ensure_user_not_banned(db, user)
 
     limiter.clear(payload.account)
     access_token = create_access_token(str(user.id), {"is_admin": user.is_admin})
@@ -74,12 +74,22 @@ async def register(payload: RegisterRequest, db: AsyncSession = Depends(get_db),
     if not code or code != payload.code:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid code")
 
-    result = await db.execute(
-        select(User).where(
-            or_(User.username == payload.username, User.email == payload.email, User.phone == payload.phone)
-        )
-    )
-    if result.scalar_one_or_none():
+    conflict_fields = [User.username == payload.username]
+    if payload.email:
+        conflict_fields.append(User.email == payload.email)
+    if payload.phone:
+        conflict_fields.append(User.phone == payload.phone)
+
+    result = await db.execute(select(User).where(or_(*conflict_fields)))
+    existing_users = result.scalars().all()
+    if existing_users:
+        for existing_user in existing_users:
+            if existing_user.username == payload.username:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already exists")
+            if payload.email and existing_user.email == payload.email:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already exists")
+            if payload.phone and existing_user.phone == payload.phone:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Phone already exists")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User already exists")
 
     user = User(

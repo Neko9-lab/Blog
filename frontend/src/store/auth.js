@@ -17,9 +17,13 @@ export const useAuthStore = defineStore("auth", {
       localStorage.removeItem("token");
     },
     async fetchMe() {
-      if (!this.token) return;
+      if (!this.token) {
+        this.user = null;
+        return null;
+      }
       const resp = await api.get("/api/v1/users/me");
       this.user = resp.data;
+      return this.user;
     },
   },
 });

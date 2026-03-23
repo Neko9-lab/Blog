@@ -15,10 +15,13 @@ class Post(Base):
     category_id = Column(Integer, ForeignKey("categories.id"), index=True, nullable=True)
     is_pinned = Column(Boolean, default=False)
     is_featured = Column(Boolean, default=False)
+    view_count = Column(Integer, default=0)
     like_count = Column(Integer, default=0)
     favorite_count = Column(Integer, default=0)
+    comment_count = Column(Integer, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    last_activity_at = Column(DateTime(timezone=True), server_default=func.now())
 
     author = relationship("User")
     category = relationship("Category")

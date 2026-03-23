@@ -11,7 +11,7 @@ from app.api import router
 from app.core.config import settings
 from app.core.logging import setup_logging
 from app.db.session import engine, async_session
-from app.db.init_db import init_db
+from app.db.init_db import ensure_schema, init_db
 from app.models import Base
 
 
@@ -19,6 +19,7 @@ from app.models import Base
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        await conn.run_sync(ensure_schema)
     session = async_session()
     try:
         await init_db(session)
