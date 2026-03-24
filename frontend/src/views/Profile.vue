@@ -174,10 +174,10 @@ onMounted(loadProfile);
 
 .profile-paper {
   background: #ffffff;
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 32px 40px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.03);
-  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+  border: 1px solid #e2e8f0;
 }
 .paper-header {
   margin-bottom: 28px;
@@ -202,7 +202,7 @@ onMounted(loadProfile);
   padding-bottom: 6px;
 }
 .profile-form :deep(.el-input__wrapper) {
-  border-radius: 8px;
+  border-radius: 6px;
   box-shadow: 0 0 0 1px #e2e8f0 inset;
 }
 .profile-form :deep(.el-input__wrapper.is-focus) {
@@ -241,12 +241,16 @@ onMounted(loadProfile);
 .save-btn {
   padding: 10px 28px;
   font-weight: 600;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
-  transition: all 0.2s;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  box-shadow: none;
 }
 .save-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3);
+  transform: none;
+  box-shadow: none;
+  background-color: #1d4ed8;
+  border-color: #1d4ed8;
+  color: #fff;
 }
 
 .avatar-uploader {
@@ -272,8 +276,8 @@ onMounted(loadProfile);
   justify-content: center;
   font-size: 32px;
   font-weight: 700;
-  color: white;
-  background: linear-gradient(135deg, #94a3b8, #64748b);
+  color: #475569;
+  background: #f1f5f9;
 }
 .avatar-overlay {
   position: absolute;

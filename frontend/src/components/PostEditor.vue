@@ -100,23 +100,7 @@ const applyToolbarTitles = () => {
   });
 };
 
-const uploadImages = async (files) => {
-  const apiBase = import.meta.env.VITE_API_BASE || "";
-  for (const file of files) {
-    const data = new FormData();
-    data.append("file", file);
-    try {
-      const resp = await api.post("/api/v1/uploads", data, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      const rawUrl = resp.data.url;
-      const fullUrl = rawUrl.startsWith("http") ? rawUrl : `${apiBase}${rawUrl}`;
-      editor.value?.insertValue(`\n![](${fullUrl})\n`);
-    } catch (err) {
-      ElMessage.error(getErrorMessage(err, "上传失败"));
-    }
-  }
-};
+
 
 const initEditor = async () => {
   await nextTick();
@@ -139,7 +123,31 @@ const initEditor = async () => {
       form.content = value;
     },
     upload: {
-      handler: uploadImages,
+      accept: "image/*",
+      url: `${import.meta.env.VITE_API_BASE || ""}/api/v1/uploads`,
+      setHeaders: () => {
+        const t = store.token || localStorage.getItem("token") || "";
+        return t ? { Authorization: `Bearer ${t}` } : {};
+      },
+      fieldName: "file",
+      format: (files, responseText) => {
+        let res;
+        try {
+          res = JSON.parse(responseText);
+        } catch { return responseText; }
+        const url = res.data?.url || "";
+        const apiBase = import.meta.env.VITE_API_BASE || "";
+        const fullUrl = url.startsWith("http") ? url : `${apiBase}${url}`;
+        const name = files.length > 0 ? files[0].name : "image.png";
+        return JSON.stringify({
+          msg: res.msg || "",
+          code: res.code === 200 ? 0 : 1,
+          data: {
+            errFiles: [],
+            succMap: { [name]: fullUrl }
+          }
+        });
+      }
     },
   });
 };
@@ -208,20 +216,24 @@ onBeforeUnmount(() => {
 .publish-btn {
   padding: 8px 24px;
   font-weight: 600;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
-  transition: all 0.2s;
+  border-radius: 6px;
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+  transition: all 0.2s ease;
 }
 .publish-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3);
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+  color: #fff;
 }
 
 .editor-paper {
-  background: #fff;
-  border-radius: 12px;
-  padding: 36px 48px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
-  border: 1px solid rgba(226, 232, 240, 0.8);
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 32px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  border: 1px solid #e2e8f0;
   min-height: 600px;
   display: flex;
   flex-direction: column;
@@ -232,16 +244,16 @@ onBeforeUnmount(() => {
   border: none;
   outline: none;
   font-size: 32px;
-  font-weight: 800;
+  font-weight: 700;
   color: #0f172a;
   padding: 8px 0;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   background: transparent;
   transition: color 0.2s;
 }
 .title-input::placeholder {
-  color: #cbd5e1;
-  font-weight: 700;
+  color: #94a3b8;
+  font-weight: 600;
 }
 
 .vditor-wrap {

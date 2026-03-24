@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="admin-container">
     <div class="admin-header">
       <h2>后台管理中心</h2>
@@ -418,12 +418,13 @@ onMounted(load);
   margin-bottom: 8px;
 }
 .log-box {
-  background: #0b0f14;
-  color: #d1d5db;
-  padding: 8px;
+  background: #f8fafc;
+  color: #334155;
+  padding: 12px;
   border-radius: 6px;
+  border: 1px solid #e2e8f0;
   font-family: Consolas, monospace;
-  font-size: 12px;
+  font-size: 13px;
 }
 .log-line {
   white-space: pre-wrap;
@@ -454,7 +455,8 @@ onMounted(load);
 }
 .admin-card {
   border-radius: 8px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
 }
 .stats-grid {
   display: grid;
@@ -476,10 +478,11 @@ onMounted(load);
 }
 .admin-container {
   max-width: 1120px;
-  margin: 30px auto;
-  background: #fff;
+  margin: 32px auto;
+  background: #ffffff;
   border-radius: 8px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
   padding: 24px;
   min-height: 60vh;
 }

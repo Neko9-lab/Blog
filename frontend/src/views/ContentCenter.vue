@@ -143,10 +143,10 @@ onMounted(load);
 
 .content-paper {
   background: #ffffff;
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 32px 40px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.03);
-  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+  border: 1px solid #e2e8f0;
   min-height: 500px;
 }
 .paper-header {
@@ -190,13 +190,13 @@ onMounted(load);
   gap: 16px;
   padding: 20px;
   border: 1px solid #e2e8f0;
-  border-radius: 10px;
+  border-radius: 6px;
   background: #ffffff;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
 }
 .record-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(0,0,0,0.04);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
   border-color: #cbd5e1;
 }
 .record-main {

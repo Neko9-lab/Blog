@@ -13,7 +13,7 @@
         >
       </nav>
       <div class="auth">
-        <el-button type="primary" class="nav-post-btn" @click="goNewPost" round>
+        <el-button type="primary" class="nav-post-btn" @click="goNewPost">
           发布新帖
         </el-button>
         <template v-if="store.user">
@@ -38,15 +38,16 @@
             <div v-else class="avatar avatar-fallback">{{ initials }}</div>
             <span class="user">{{ displayName }}</span>
           </div>
-          <el-button size="small" @click="logout">退出</el-button>
+          <el-button class="auth-btn logout-btn" round @click="logout">退出</el-button>
         </template>
         <template v-else>
-          <el-button size="small" @click="router.push('/login')"
+          <el-button class="auth-btn login-btn" text @click="router.push('/login')"
             >登录</el-button
           >
           <el-button
-            size="small"
+            class="auth-btn register-btn"
             type="primary"
+            round
             @click="router.push('/register')"
             >注册</el-button
           >
@@ -199,26 +200,18 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 0 32px;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.05),
-    0 4px 12px rgba(0, 0, 0, 0.03);
-  border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
   position: sticky;
   top: 0;
   z-index: 100;
-  transition: all 0.3s ease;
 }
 
 .brand {
   font-size: 24px;
   font-weight: 800;
   cursor: pointer;
-  background: linear-gradient(135deg, #1e3a8a, #3b82f6);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #0f172a;
   letter-spacing: -0.5px;
   margin-right: 32px;
 }
@@ -283,23 +276,68 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
-  color: #334155;
+  background: #f1f5f9;
+  color: #475569;
   font-size: 14px;
   font-weight: 600;
   border-radius: 50%;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
 }
 
 .nav-post-btn {
   font-weight: 600;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
-  transition: all 0.2s;
-  padding: 8px 20px;
+  border-radius: 6px;
+  background: #0f172a;
+  border-color: #0f172a;
+  color: #ffffff;
+  transition: all 0.2s ease;
+  padding: 8px 24px;
 }
-.nav-post-btn:hover {
+.nav-post-btn:hover,
+.nav-post-btn:focus {
+  background: #1e293b;
+  border-color: #1e293b;
+  color: #ffffff;
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+}
+
+.auth-btn {
+  font-weight: 600;
+  font-size: 14px;
+  padding: 8px 20px;
+  transition: all 0.2s ease;
+}
+.login-btn {
+  color: #475569;
+}
+.login-btn:hover {
+  color: #0f172a;
+  background-color: transparent !important;
+}
+.register-btn {
+  background: #2563eb;
+  border-color: #2563eb;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
+}
+.register-btn:hover,
+.register-btn:focus {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+.logout-btn {
+  color: #64748b;
+  border-color: #e2e8f0;
+  background: #f8fafc;
+}
+.logout-btn:hover,
+.logout-btn:focus {
+  color: #ef4444;
+  border-color: #fca5a5;
+  background: #fef2f2;
 }
 
 a {

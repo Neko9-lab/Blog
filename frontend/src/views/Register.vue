@@ -1,27 +1,35 @@
-﻿<template>
-  <el-form @submit.prevent="onRegister" label-width="80px" style="max-width: 400px; margin: 40px auto;">
-    <el-form-item label="用户名">
-      <el-input v-model.trim="form.username" />
-    </el-form-item>
-    <el-form-item label="邮箱">
-      <el-input v-model.trim="form.email" />
-    </el-form-item>
-    <el-form-item label="手机">
-      <el-input v-model.trim="form.phone" />
-    </el-form-item>
-    <el-form-item label="验证码">
-      <el-input v-model.trim="form.code" />
-    </el-form-item>
-    <el-form-item>
-      <el-button @click="sendCode">发送验证码</el-button>
-    </el-form-item>
-    <el-form-item label="密码">
-      <el-input v-model="form.password" type="password" show-password />
-    </el-form-item>
-    <el-form-item>
-      <el-button type="primary" @click="onRegister">注册</el-button>
-    </el-form-item>
-  </el-form>
+<template>
+  <div class="register-wrapper">
+    <el-card class="register-card" shadow="never">
+      <h2 class="register-title">注册账号</h2>
+      <el-form @submit.prevent="onRegister" label-position="top">
+        <el-form-item label="用户名">
+          <el-input v-model.trim="form.username" placeholder="设置用户名" />
+        </el-form-item>
+        <el-form-item label="邮箱">
+          <el-input v-model.trim="form.email" placeholder="邮箱地址" />
+        </el-form-item>
+        <el-form-item label="手机">
+          <el-input v-model.trim="form.phone" placeholder="手机号 (可选)" />
+        </el-form-item>
+        <el-form-item label="验证码">
+          <div class="code-row">
+            <el-input v-model.trim="form.code" placeholder="输入验证码" />
+            <el-button @click="sendCode" class="code-btn">获取验证码</el-button>
+          </div>
+        </el-form-item>
+        <el-form-item label="密码">
+          <el-input v-model="form.password" type="password" show-password placeholder="设置密码 (最少 6 位)" />
+        </el-form-item>
+        <el-form-item class="submit-item">
+          <el-button type="primary" native-type="submit" class="submit-btn" size="large">注册</el-button>
+        </el-form-item>
+      </el-form>
+      <div class="register-footer">
+        已有账号？<router-link to="/login">直接登录</router-link>
+      </div>
+    </el-card>
+  </div>
 </template>
 
 <script setup>
@@ -102,3 +110,68 @@ const onRegister = async () => {
   }
 };
 </script>
+
+<style scoped>
+.register-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 160px);
+  padding: 20px 20px 60px;
+}
+.register-card {
+  width: 100%;
+  max-width: 420px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  background: #ffffff;
+  padding: 12px 16px;
+}
+.register-title {
+  text-align: center;
+  margin: 10px 0 28px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.5px;
+}
+.code-row {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+.code-btn {
+  flex-shrink: 0;
+  width: 110px;
+}
+.submit-item {
+  margin-top: 32px;
+  margin-bottom: 0;
+}
+.submit-btn {
+  width: 100%;
+  font-size: 15px;
+  border-radius: 6px;
+  background: #2563eb;
+  border-color: #2563eb;
+}
+.submit-btn:hover {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+}
+.register-footer {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 14px;
+  color: #64748b;
+}
+.register-footer a {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 500;
+}
+.register-footer a:hover {
+  text-decoration: underline;
+}
+</style>

@@ -67,35 +67,46 @@ const onLogin = async () => {
 }
 .login-card {
   width: 100%;
-  max-width: 360px;
+  max-width: 380px;
   border-radius: 8px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  background: #ffffff;
+  padding: 12px;
 }
 .login-title {
   text-align: center;
-  margin: 10px 0 24px;
-  font-size: 20px;
-  font-weight: 600;
+  margin: 10px 0 28px;
+  font-size: 22px;
+  font-weight: 700;
   color: #0f172a;
+  letter-spacing: -0.5px;
 }
 .submit-item {
-  margin-top: 30px;
+  margin-top: 32px;
   margin-bottom: 0;
 }
 .submit-btn {
   width: 100%;
   font-size: 15px;
   border-radius: 6px;
+  background: #2563eb;
+  border-color: #2563eb;
+}
+.submit-btn:hover {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
 }
 .login-footer {
   margin-top: 24px;
   text-align: center;
-  font-size: 13px;
+  font-size: 14px;
   color: #64748b;
 }
 .login-footer a {
   color: #2563eb;
   text-decoration: none;
+  font-weight: 500;
 }
 .login-footer a:hover {
   text-decoration: underline;

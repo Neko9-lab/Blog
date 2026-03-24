@@ -91,10 +91,10 @@ onMounted(load);
 
 .notif-paper {
   background: #ffffff;
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 32px 40px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.03);
-  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+  border: 1px solid #e2e8f0;
   min-height: 500px;
 }
 
@@ -172,8 +172,8 @@ onMounted(load);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #94a3b8, #64748b);
-  color: #ffffff;
+  background: #f1f5f9;
+  color: #475569;
   font-size: 16px;
   font-weight: 600;
 }
